@@ -1,0 +1,4 @@
+Hello :)
+Dans ce .py, il y la la génération d'un taquin aléatoire, puis la vérification de si il est faisable ou non
+puis pour le 3x3 et 4x4, l'algo A* avec les heuristiques demandées (le 3x3 et niquel mais le 4x4 est lent as fuck)
+Restera les algo cout uniforme pour le 3x3, IDA* pour le 4x4 et les taquins partiellement spécifié
