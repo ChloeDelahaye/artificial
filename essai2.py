@@ -1,6 +1,7 @@
 # -*- coding:Utf8 -*-
 import time
 from copy import deepcopy
+from heapq import heapify, heappush, heappop
 
 COEFF = (4, 1)  #rho1 à rho6
 
@@ -36,7 +37,6 @@ class Taquin:
     # Genere une grille de taquin aléatoire
     def generate_grid(self,n):
         node=[i for i in range(n*n)]
-        print node
         for i in range(self.size):
             for j in range(self.size):
                 from random import randint
@@ -80,7 +80,7 @@ class Taquin:
         for i in range(n):
             for j in range(n):
                 arr.append(self.taquin[i][j])
-        print arr
+        
 
         invcount=self.getInvCount(arr,n)
         if n % 2 ==1:
@@ -231,7 +231,7 @@ def AStar(start,n,heuris):
                         move.f = move.h
                     move.parent = current
                     openList.append(move)
-        #print current.taquin
+        
 
     return None
 
@@ -241,12 +241,86 @@ def AStar(start,n,heuris):
 #
 #########################################################################################
 
+def searchAlgorithm(start, n, heuris):
+    """
+    Uniform Cost Search, misplaced tile search, and manhattan distance
+    search are all contained in this method. 
+    choice determines the search method used, while problem is the
+    initial puzzle state that needs to be solved
+    """
+    # Set up data/storage needed for algorithm
+    # i.e create node object with correct heuristics, depth and heapq
+    # IMPORTANT: depth = cost for this puzzle solution --> g(n) = depth level
+    nodes_expanded = 0
+    max_queue_nodes = 0
+
+    """if choice == 1:
+        init_node = Node(0, 0, problem)
+
+    if choice == 2:
+        # Get heuristic for misplaced tile
+
+        h = misplaced(problem)
+        init_node = Node(h,0, problem)
+
+    if choice == 3:
+        # Get heuristic for manhattan distance
+        h = manhattan(problem)
+        init_node = Node(h, 0, problem)"""
+    # Push the node to the priority queue
+    pq = []
+    heappush(pq, start)
+
+    """print 'Expanding state: '
+    printPuzzle(init_node)"""
+
+    # Begin loop
+    goal = False
+    tempList=Taquin(3)
+    while not goal:
+
+    # Check if frontier is empty
+        if len(pq) == 0:
+            print 'Frontier empty, failure to find goal state.'
+            break
+
+    # Make temp node = current node in front of queue & pop
+        heapify(pq)
+        temp_node = heappop(pq)
+        # print "cost of node: ", temp_node.cost
+        #print (temp_node.taquin)
+
+    # check if temp node = solution, if it is -> print and exit loop
+        if temp_node.is_solution():
+            goal = True
+            print 'Goal!'
+            print_grid(temp_node)
+            print 'To solve this problem the search algorithm expanded a total of ' , nodes_expanded , 'nodes.'
+            print 'The maximum number of nodes in the queue at any one time was ' , max_queue_nodes , '.'
+            print 'The depth of the goal node was ' , temp_node.g , '.'
+            return temp_node
+    # else, expand node (swap up,down,left,right) || expand method returns list of nodes and nodes_expanded
+    # during expansion, update nodes_expanded --> expand(temp_node, nodes_expanded)
+        else:
+            tempList = move_function(temp_node, n)
+
+    # push the children nodes into the queue, and use heappush/heapify to sort by priority
+    # also update the heuristics to correct one
+    # cost must be updated as well
+            for x in range(len(tempList)):
+                print tempList[x].taquin
+                if heuris == 1:
+                    tempList[x].h = tempList[x].misplaced_Tiles(n)
+                    tempList[x].f = tempList[x].h
+                if heuris == 2:
+                    tempList[x].h = tempList[x].manhattan(n)
+                    tempList[x].f = tempList[x].h + tempList[x].g
 
 
-
-
-
-
+                heappush(pq, tempList[x])
+    # update max_queue_nodes
+            if max_queue_nodes < len(pq):
+                max_queue_nodes = len(pq)
 
 
 
@@ -341,5 +415,24 @@ else:
 print ("Length: " + str(noofMoves))
 
 
+################## UCS + distance de Manhattan#######################################
+
+# Initialisation calcul temps
+start_time = time.time()
+
+# Lancement de l'algorithme A*
+result4 = searchAlgorithm(t0, n, 2)
+
+# Compteur du nombre de déplacements
+noofMoves = 0
+
+# Calcul/Affichage du temps d'exécution
+print("recherche terminee en %s secondes" % (time.time() - start_time))
+
+# Affichage de la solution
+if(not result4):
+    print ("No solution")
+else:
+    print(result4.taquin)
 
 
