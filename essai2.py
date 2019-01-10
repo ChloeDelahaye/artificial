@@ -1,9 +1,15 @@
 # -*- coding:Utf8 -*-
+#########################################################################################
+#
+#     TP IA Resolution de Taquins
+#       Master 1 IRCOMS 2018-2019
+#       Chloe Delahaye, Nathan Teboul
+#
+#########################################################################################
 import time
+import sys
 from copy import deepcopy
 from heapq import heapify, heappush, heappop
-
-COEFF = (4, 1)  #rho1 à rho6
 
 #########################################################################################
 #
@@ -35,6 +41,7 @@ class Taquin:
             self.goal = [[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15]]
     
     # Genere une grille de taquin aléatoire
+    # n taille du taquin
     def generate_grid(self,n):
         node=[i for i in range(n*n)]
         for i in range(self.size):
@@ -51,6 +58,8 @@ class Taquin:
         print(self.taquin)
     
     # Compte le nombre de permutation de la grille initiale 
+    # tableau permettant de compter les permutations
+    # n: taille du taquin
     def getInvCount(self,arr,n): 
         inv_count = 0
         for i in range((n*n)-1): 
@@ -63,6 +72,7 @@ class Taquin:
         return inv_count
     
     # Dertermine la position du zero dans la grille initiale par rapport à dans la grille finale
+    # n : taille du taquin
     def findPosition(self,n):
         for i in range(n-1,-1,-1):
             for j in range(n-1,-1,-1):
@@ -75,6 +85,7 @@ class Taquin:
     # si la taille est impair : il faut que le nombre de permutation soit pair
     # si la taille est paire il faut : que le nombre de permutation soit paire et la distance actuelle du zero à sa bonne position soit impaire
     # ou l'inverse
+    #n : taille du taquin
     def isSolvable(self,n):
         arr=[]
         for i in range(n):
@@ -98,6 +109,7 @@ class Taquin:
         return self.taquin == self.goal
 
     # Calcul de la distance de Manhattan
+    # n : taille du taquin
     def manhattan(self,n):
         h = 0
         for i in range(n):
@@ -106,11 +118,12 @@ class Taquin:
                 h += abs(x-i) + abs(y-j)
         return h
 
-
+    # other: autre taquin
     def __eq__(self, other):
         return self.taquin == other.taquin
 
     # Calcul du nombre de cases mal placées
+    # n : taille du taquin
     def misplaced_Tiles(self, n):
         misplaced_tiles=0
         for i in range(n):
@@ -128,6 +141,8 @@ class Taquin:
 #########################################################################################
 
 # fonction de déplacement de case
+# curr : taquin courant
+# n : taille du taquin
 def move_function(curr,n):
     curr = curr.taquin
     for i in range(n):
@@ -176,6 +191,7 @@ def move_function(curr,n):
     return q
 
 # retourne la meilleure valeur de f pour determiner le meilleur chemin
+#openList : liste de noeuds
 def best_fvalue(openList):
     f = openList[0].f
     index = 0
@@ -189,7 +205,11 @@ def best_fvalue(openList):
     return openList[index], index
 
 # Algorithme A*
+# start: taquin de depart
+# n : taille du taquin
+# heuris: heuristique utilisee
 def AStar(start,n,heuris):
+    # creation des listes qui contiendront les noeuds
     openList = []
     closedList = []
     openList.append(start)
@@ -201,26 +221,33 @@ def AStar(start,n,heuris):
         openList.pop(index)
         closedList.append(current)
 
+        # On recupere les voisins du noeud courant
         X = move_function(current,n)
+
+        #Pour chaque voisins
         for move in X:
-            ok = False   #regarde dans closedList
+            # On regarde dans closedList si le noeud y est deja
+            ok = False   
             for i, item in enumerate(closedList):
                 if item == move:
                     ok = True
                     break
-            if not ok:              #si pas dans closed list
+            # S'il n'est pas dans la liste
+            if not ok:              
                 newG = current.g + 1 
                 present = False
 
-                
+                # on regarde si il est dans openList
                 for j, item in enumerate(openList):
                     if item == move:
                         present = True
+                        #si il y est, on vérifie sa valur, si elle est plus petite on met à jour la valur dans openList
                         if newG < openList[j].g:
                             openList[j].g = newG
                             openList[j].f = openList[j].g + openList[j].h
                             openList[j].parent = current
-                            
+
+                 # sinon on calcule les couts avec heuristiques et on ajoute le noeud a openList         
                 if not present:
                     move.g = newG
                     if heuris == 2:
@@ -242,55 +269,26 @@ def AStar(start,n,heuris):
 #########################################################################################
 
 def searchAlgorithm(start, n, heuris):
-    """
-    Uniform Cost Search, misplaced tile search, and manhattan distance
-    search are all contained in this method. 
-    choice determines the search method used, while problem is the
-    initial puzzle state that needs to be solved
-    """
-    # Set up data/storage needed for algorithm
-    # i.e create node object with correct heuristics, depth and heapq
-    # IMPORTANT: depth = cost for this puzzle solution --> g(n) = depth level
+  
     nodes_expanded = 0
     max_queue_nodes = 0
 
-    """if choice == 1:
-        init_node = Node(0, 0, problem)
-
-    if choice == 2:
-        # Get heuristic for misplaced tile
-
-        h = misplaced(problem)
-        init_node = Node(h,0, problem)
-
-    if choice == 3:
-        # Get heuristic for manhattan distance
-        h = manhattan(problem)
-        init_node = Node(h, 0, problem)"""
-    # Push the node to the priority queue
     pq = []
     heappush(pq, start)
 
-    """print 'Expanding state: '
-    printPuzzle(init_node)"""
-
-    # Begin loop
     goal = False
     tempList=Taquin(3)
     while not goal:
 
-    # Check if frontier is empty
         if len(pq) == 0:
             print 'Frontier empty, failure to find goal state.'
             break
 
-    # Make temp node = current node in front of queue & pop
+    # temp node = node courante dans queue
         heapify(pq)
         temp_node = heappop(pq)
-        # print "cost of node: ", temp_node.cost
-        #print (temp_node.taquin)
-
-    # check if temp node = solution, if it is -> print and exit loop
+        
+    # vérifie si temp node = solution, si oui, fin
         if temp_node.is_solution():
             goal = True
             print 'Goal!'
@@ -299,29 +297,96 @@ def searchAlgorithm(start, n, heuris):
             print 'The maximum number of nodes in the queue at any one time was ' , max_queue_nodes , '.'
             print 'The depth of the goal node was ' , temp_node.g , '.'
             return temp_node
-    # else, expand node (swap up,down,left,right) || expand method returns list of nodes and nodes_expanded
-    # during expansion, update nodes_expanded --> expand(temp_node, nodes_expanded)
+
         else:
             tempList = move_function(temp_node, n)
 
-    # push the children nodes into the queue, and use heappush/heapify to sort by priority
-    # also update the heuristics to correct one
-    # cost must be updated as well
+    # met la node fille dans la file, et utilise heappush/heapify pour trier
+    # MAJ heuristique et couts
             for x in range(len(tempList)):
                 print tempList[x].taquin
-                if heuris == 1:
+                """if heuris == 1:
                     tempList[x].h = tempList[x].misplaced_Tiles(n)
                     tempList[x].f = tempList[x].h
                 if heuris == 2:
                     tempList[x].h = tempList[x].manhattan(n)
-                    tempList[x].f = tempList[x].h + tempList[x].g
-
+                    tempList[x].f = tempList[x].h + tempList[x].g"""
+                tempList[x].f = tempList[x].g
 
                 heappush(pq, tempList[x])
-    # update max_queue_nodes
+    # MAJ max_queue_nodes
             if max_queue_nodes < len(pq):
                 max_queue_nodes = len(pq)
 
+#########################################################################################
+#
+#     Algo IDA*
+#
+#########################################################################################
+
+# Algorithme ida*
+# start: taquin de depart
+# n : taille du taquin
+# heuris: heuristique utilisee
+def ida(start,n,heuris):
+    bound = start.h
+    #calcul de la limite en fonction des heuristiques
+    if heuris==1:
+        bound = start.misplaced_Tiles(n)
+    if heuris==2:
+        bound = start.manhattan(n)
+    # initialisation de la liste de parents
+    start.parent=[]
+    start.parent.append(start.taquin)
+
+    #tant que la solution n'est pas trouvée, on utilisa l'algorithme de recherche en profondeur
+    while(1):
+        t = search(start.parent,0,bound,n)
+        if t==FOUND:
+            return start.parent
+        if t== sys.maxint:
+            return NOT_FOUND
+        bound =t 
+
+# Algorithme de recherche en profondeur
+# path: liste des noeuds parents
+# g: valeur pour calculer la nouvelle limite
+# bound: limite actuelle
+# n : taille du taquin
+def search(path,g,bound,n):
+    node= Taquin(n)
+    node.taquin=path[-1]
+    #mise a jour de la limite
+    if heuris==1:
+        f=node.g+node.misplaced_Tiles(n)
+    if heuris==2:
+        f=node.g+node.manhattan(n)
+    if node.f>bound:
+        return node.f
+
+    # verification de si le noeud est solution
+    if node.is_solution():
+        return FOUND
+
+    min=sys.maxint
+    #pour chaque sommet voisin
+    for succ in move_function(node, n):
+        present=False
+        #verification si deja visite ou non
+        for i in range(len(path)):
+            if path[i]==succ:
+                prensent=True
+        #si non visite, mise a jour des parents
+        if present==False:
+            path.append(succ)
+            t= search(path,f,bound)
+            if t== FOUND:
+                return FOUND
+            if t< min:
+                min=t
+            path.pop()
+
+    return min
 
 
 
@@ -330,12 +395,12 @@ def searchAlgorithm(start, n, heuris):
 #     MAIN
 #
 #########################################################################################
+
 # Choix de la taille du taquin
 n = input("Entrer la taille du taquin : ") 
 while (n != 3) and (n != 4):
     print "La Taille du Taquin doit être 3 ou 4"
     n = input("Entrer la taille du taquin : ") 
-
 
 # Initialisation du Taquin
 t0 = Taquin(n)
@@ -344,12 +409,14 @@ t0 = Taquin(n)
 t0.generate_grid(n)
 
 # Grilles de test
-#t0.taquin = [[5,0,1],[4,3,6],[7,2,8]]
+#t0.taquin = [[4,2,8],[5,3,7],[0,1,6]]
 #t0.taquin = [[3,1,2],[0,4,5],[6,7,8]]
-#t0.taquin =[[15,0,1,2],[4,5,7,3],[8,9,6,11],[12,13,10,14]] 
-#t0.taquin = [[3,9,1,15],[14,11,4,6],[13,0,10,12],[2,7,8,5]]
-#t0.taquin = [[6,13,7,10],[8,9,11,0],[15,2,12,5],[14,3,1,4]]
-#t0.taquin = [[4,1,2,3],[5,0,6,7],[8,9,10,11],[12,13,14,15]]
+t0.taquin =[[4,7,0,5],[8,1,2,3],[12,9,15,6],[14,11,13,10]] 
+#t0.taquin = [[1,5,3,7],[0,4,6,11],[12,8,2,4],[9,13,15,10]]
+#t0.taquin = [[4,6,2,3],[1,15,7,10],[5,13,8,11],[0,12,9,14]]
+#t0.taquin =[[4,1,2,3],[8,5,0,7],[9,13,6,11],[12,14,10,15]] 
+#t0.taquin =[[4,1,2,3],[5,13,9,7],[12,10,6,11],[8,0,14,15]]
+#t0.taquin = [[1,5,3,7],[4,6,2,11],[8,0,14,10],[12,9,13,15]]
 
 # Affichage du Taquin initial
 t0.print_grid()
@@ -372,7 +439,7 @@ result2 = AStar(t0,n,2)
 noofMoves = 0
 
 # Calcul/Affichage du temps d'exécution
-print("recherche terminee en %s secondes" % (time.time() - start_time))
+print("recherche avec A etoile et distance de manhattan terminee en %s secondes" % (time.time() - start_time))
 
 # Affichage de la solution
 if(not result2):
@@ -384,7 +451,7 @@ else:
         noofMoves += 1
         #print(t.taquin)  # Affichage des déplacements
         t=t.parent
-print ("Length: " + str(noofMoves))
+print ("Nombre de mouvements: " + str(noofMoves))
 
 
 ################## A* + cases mal placées ####################################### 
@@ -400,7 +467,7 @@ result1 = AStar(t0,n,1)
 noofMoves = 0
 
 # Calcul/Affichage du temps d'exécution
-print("recherche terminee en %s secondes" % (time.time() - start_time))
+print("recherche A etoile et case mal placées terminee en %s secondes" % (time.time() - start_time))
 
 # Affichage de la solution
 if(not result1):
@@ -412,22 +479,22 @@ else:
         noofMoves += 1
         #print(t.taquin)    # Affichage des déplacements
         t=t.parent
-print ("Length: " + str(noofMoves))
+print ("Nombre de mouvements: " + str(noofMoves))
 
 
-################## UCS + distance de Manhattan#######################################
-
+################## UCS #######################################
+"""
 # Initialisation calcul temps
 start_time = time.time()
 
-# Lancement de l'algorithme A*
+# Lancement de l'algorithme UCS
 result4 = searchAlgorithm(t0, n, 2)
 
 # Compteur du nombre de déplacements
 noofMoves = 0
 
 # Calcul/Affichage du temps d'exécution
-print("recherche terminee en %s secondes" % (time.time() - start_time))
+print("recherche avec UCS et distance de manhattan terminee en %s secondes" % (time.time() - start_time))
 
 # Affichage de la solution
 if(not result4):
@@ -435,4 +502,48 @@ if(not result4):
 else:
     print(result4.taquin)
 
+"""
+################## IDA* + cases mal placées#######################################
 
+"""
+# Initialisation calcul temps
+start_time = time.time()
+
+# Lancement de l'algorithme IDA
+result8 = ida(t0, n,1)
+
+# Compteur du nombre de déplacements
+noofMoves = 0
+
+# Calcul/Affichage du temps d'exécution
+print("recherche avec IDA et distance de manhattan terminee en %s secondes" % (time.time() - start_time))
+
+# Affichage de la solution
+if(not result8):
+    print ("No solution")
+else:
+    print(result8.taquin)
+
+"""
+
+################## IDA* + distance Manhattan#######################################
+"""
+# Initialisation calcul temps
+start_time = time.time()
+
+# Lancement de l'algorithme IDA
+result6 = ida(t0, n,2)
+
+# Compteur du nombre de déplacements
+noofMoves = 0
+
+# Calcul/Affichage du temps d'exécution
+print("recherche avec IDA et distance de manhattan terminee en %s secondes" % (time.time() - start_time))
+
+# Affichage de la solution
+if(not result6):
+    print ("No solution")
+else:
+    print(result6.taquin)
+
+"""
